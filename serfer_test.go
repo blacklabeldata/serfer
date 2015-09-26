@@ -33,12 +33,13 @@ func TestRunSerfer(t *testing.T) {
 		return serfer.Run(ctx)
 	})
 
-	// Send event
+	// Send events
 	select {
 	case ch <- evt:
 	case <-time.After(time.Second):
 		t.Fatal("Event was not sent over channel")
 	}
+	ch <- evt
 
 	// Stop event processing
 	cancel()
