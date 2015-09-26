@@ -21,7 +21,7 @@ func TestRunSerfer(t *testing.T) {
 	handler.On("HandleEvent", evt).Return()
 
 	// Create channel and serfer
-	ch := make(chan serf.Event)
+	ch := make(chan serf.Event, 1)
 	serfer := NewSerfer(ch, handler)
 
 	// Setup test
@@ -33,21 +33,23 @@ func TestRunSerfer(t *testing.T) {
 		return serfer.Run(ctx)
 	})
 
-	// Send event
+	// Send events
 	select {
 	case ch <- evt:
-	case <-time.After(time.Millisecond):
+	case <-time.After(time.Second):
 		t.Fatal("Event was not sent over channel")
 	}
-
-	// Validate event was prcoessed
-	handler.AssertCalled(t, "HandleEvent", evt)
+	ch <- evt
 
 	// Stop event processing
 	cancel()
 
 	// Verify stopped without error
 	assert.Nil(t, death.Wait(), "Error should be nil")
+
+	// Validate event was prcoessed
+	handler.AssertCalled(t, "HandleEvent", evt)
+
 }
 
 func TestRunSerfer_NilContext(t *testing.T) {
