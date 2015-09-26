@@ -1,10 +1,21 @@
-package serf
+package serfer
 
 import (
 	"github.com/hashicorp/serf/serf"
 
 	"github.com/stretchr/testify/mock"
 )
+
+// MockEventHandler mocks a basic Event handler.
+type MockEventHandler struct {
+	mock.Mock
+}
+
+// HandleEvent processes member events.
+func (m *MockEventHandler) HandleEvent(e serf.Event) {
+	m.Called(e)
+	return
+}
 
 // MockMemberEventHandler mocks MemberEvent handlers.
 type MockMemberEventHandler struct {

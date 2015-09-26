@@ -1,4 +1,4 @@
-package serf
+package serfer
 
 import (
 	"net"
@@ -24,8 +24,7 @@ type EventHandlerTestSuite struct {
 	Member  serf.Member
 }
 
-// Make sure that VariableThatShouldStartAtFive is set to five
-// before each test
+// Make sure that Handler and Member are set before each test
 func (suite *EventHandlerTestSuite) SetupTest() {
 	suite.Handler = SerfEventHandler{
 		Logger: &log.NullLogger{},
