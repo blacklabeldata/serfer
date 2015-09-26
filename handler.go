@@ -1,4 +1,4 @@
-package serf
+package serfer
 
 import (
 	"github.com/hashicorp/serf/serf"
@@ -33,15 +33,33 @@ type Reconciler interface {
 
 // SerfEventHandler is used to dispatch various Serf events to separate event handlers.
 type SerfEventHandler struct {
-	NodeJoined   MemberEventHandler
-	NodeLeft     MemberEventHandler
-	NodeFailed   MemberEventHandler
-	NodeReaped   MemberEventHandler
-	NodeUpdated  MemberEventHandler
+
+	// Called when a Member joins the cluster.
+	NodeJoined MemberEventHandler
+
+	// Called when a Member leaves the cluster by sending a leave message.
+	NodeLeft MemberEventHandler
+
+	// Called when a Member has been detected as failed.
+	NodeFailed MemberEventHandler
+
+	// Called when a Member has been Readed from the cluster.
+	NodeReaped MemberEventHandler
+
+	// Called when a Member has been updated.
+	NodeUpdated MemberEventHandler
+
+	// Called when a membership event occurs.
+	Reconciler Reconciler
+
+	// Called when a serf.Query is received.
 	QueryHandler QueryEventHandler
-	Reconciler   Reconciler
-	UserEvent    UserEventHandler
-	Logger       log.Logger
+
+	// Called when a user event is received.
+	UserEvent UserEventHandler
+
+	// Logs output
+	Logger log.Logger
 }
 
 // HandleEvent processes a generic Serf event and dispatches it to the appropriate
