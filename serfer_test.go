@@ -42,17 +42,3 @@ func TestRunSerfer(t *testing.T) {
 	handler.AssertCalled(t, "HandleEvent", evt)
 
 }
-
-// func TestRunSerfer_NilContext(t *testing.T) {
-
-// 	// Create handler
-// 	handler := &MockEventHandler{}
-
-// 	// Create channel and serfer
-// 	ch := make(chan serf.Event)
-// 	serfer := NewSerfer(ch, handler)
-
-// 	// Verify stopped with error
-// 	assert.NotNil(t, serfer.Run(nil), "Error should not be nil")
-// 	handler.AssertNotCalled(t, "HandleEvent")
-// }
