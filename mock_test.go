@@ -44,8 +44,8 @@ type MockReconciler struct {
 	mock.Mock
 }
 
-// Reconcile processes MemberEvents.
-func (m *MockReconciler) Reconcile(e serf.MemberEvent) {
+// Reconcile processes Members.
+func (m *MockReconciler) Reconcile(e serf.Member) {
 	m.Called(e)
 	return
 }
