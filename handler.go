@@ -66,12 +66,6 @@ type SerfEventHandler struct {
 	// IsLeader determines if the local node is the cluster leader.
 	IsLeader IsLeaderFunc
 
-	// IsLeaderEventFunc determines if an event is a leader election event based on the event name.
-	IsLeaderEvent func(string) bool
-
-	// LeaderElectionHandler processes leader election events.
-	LeaderElectionHandler UserEventHandler
-
 	// UserEvent processes known, non-leader election events.
 	UserEvent UserEventHandler
 
@@ -200,15 +194,6 @@ func (s *SerfEventHandler) reconcile(me serf.MemberEvent) {
 // handleUserEvent is called when a user event is received from both local and remote nodes.
 func (s *SerfEventHandler) handleUserEvent(event serf.UserEvent) {
 	switch name := event.Name; {
-
-	// Handles leader election events
-	case s.IsLeaderEvent(name):
-		s.Logger.Info("serfer: New leader elected: %s", event.Payload)
-
-		// Process leader election event
-		if s.LeaderElectionHandler != nil {
-			s.LeaderElectionHandler.HandleUserEvent(event)
-		}
 
 	// Handle service events
 	case s.isServiceEvent(name):
