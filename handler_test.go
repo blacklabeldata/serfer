@@ -38,9 +38,6 @@ func (suite *EventHandlerTestSuite) SetupTest() {
 		IsLeader: func() bool {
 			return true
 		},
-		IsLeaderEvent: func(name string) bool {
-			return name == suite.Prefix+":new-leader"
-		},
 		Logger: &log.NullLogger{},
 	}
 
@@ -309,27 +306,6 @@ func (suite *EventHandlerTestSuite) TestUnknownEvent() {
 	u1.AssertNotCalled(suite.T(), "HandleUserEvent")
 	q1.AssertNotCalled(suite.T(), "HandleQueryEvent")
 	r1.AssertNotCalled(suite.T(), "Reconcile")
-}
-
-// Test leader election events are dispatched properly
-func (suite *EventHandlerTestSuite) TestUserEvent_LeaderElection() {
-
-	// Create Member Event
-	evt := serf.UserEvent{
-		LTime:    serf.LamportTime(0),
-		Name:     suite.Prefix + ":new-leader",
-		Payload:  make([]byte, 0),
-		Coalesce: false,
-	}
-
-	// Add UserEvent handler
-	m := &MockUserEventHandler{}
-	m.On("HandleUserEvent", evt).Return()
-	suite.Handler.LeaderElectionHandler = m
-
-	// Process event
-	suite.Handler.HandleEvent(evt)
-	m.AssertCalled(suite.T(), "HandleUserEvent", evt)
 }
 
 // Test unknown user events are dispatched properly
