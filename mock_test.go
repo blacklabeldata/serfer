@@ -60,56 +60,6 @@ func (m *MockEventHandler) Reconcile(e serf.Member) {
 	return
 }
 
-// // MockMemberEventHandler mocks MemberEvent handlers.
-// type MockMemberEventHandler struct {
-// 	mock.Mock
-// }
-
-// // HandleMemberEvent processes member events.
-// func (m *MockMemberEventHandler) HandleMemberEvent(e serf.MemberEvent) {
-// 	m.Called(e)
-// 	return
-// }
-
-// // MockUserEventHandler mocks UserEvent handlers.
-// type MockUserEventHandler struct {
-// 	mock.Mock
-// }
-
-// // HandleUserEvent processes UserEvents.
-// func (m *MockUserEventHandler) HandleUserEvent(e serf.UserEvent) {
-// 	m.Called(e)
-// 	return
-// }
-
-// // HandleLeaderElection processes leader election events.
-// func (m *MockUserEventHandler) HandleLeaderElection(e serf.UserEvent) {
-// 	m.Called(e)
-// 	return
-// }
-
-// // MockReconciler mocks a Reconciler.
-// type MockReconciler struct {
-// 	mock.Mock
-// }
-
-// // Reconcile processes Members.
-// func (m *MockReconciler) Reconcile(e serf.Member) {
-// 	m.Called(e)
-// 	return
-// }
-
-// // MockQueryEventHandler mocks QueryEvent handlers.
-// type MockQueryEventHandler struct {
-// 	mock.Mock
-// }
-
-// // HandleQueryEvent processes QueryEvents.
-// func (m *MockQueryEventHandler) HandleQueryEvent(e serf.Query) {
-// 	m.Called(e)
-// 	return
-// }
-
 // MockEvent
 type MockEvent struct {
 	mock.Mock
