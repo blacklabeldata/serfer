@@ -24,14 +24,49 @@ type MemberEventHandler interface {
 	HandleMemberEvent(serf.MemberEvent)
 }
 
+// MemberJoinHandler handles member join events.
+type MemberJoinHandler interface {
+	HandleMemberJoin(serf.MemberEvent)
+}
+
+// MemberUpdateHandler handles member update events.
+type MemberUpdateHandler interface {
+	HandleMemberUpdate(serf.MemberEvent)
+}
+
+// MemberLeaveHandler handles member leave events.
+type MemberLeaveHandler interface {
+	HandleMemberLeave(serf.MemberEvent)
+}
+
+// MemberFailureHandler handles member failure events.
+type MemberFailureHandler interface {
+	HandleMemberFailure(serf.MemberEvent)
+}
+
+// MemberReapHandler handles member reap events.
+type MemberReapHandler interface {
+	HandleMemberReap(serf.MemberEvent)
+}
+
 // UserEventHandler handles user events.
 type UserEventHandler interface {
 	HandleUserEvent(serf.UserEvent)
 }
 
+// UnknownEventHandler handles unknown events.
+type UnknownEventHandler interface {
+	HandleUnknownEvent(serf.UserEvent)
+}
+
 // QueryEventHandler handles Serf query events.
 type QueryEventHandler interface {
 	HandleQueryEvent(serf.Query)
+}
+
+// LeaderElectionHandler handles leader election events.
+type LeaderElectionHandler interface {
+	HandleLeaderElection(serf.UserEvent)
 }
 
 // Reconciler is used to reconcile Serf events wilth an external process, like Raft.
@@ -70,28 +105,28 @@ type SerfEventHandler struct {
 	IsLeaderEvent func(string) bool
 
 	// LeaderElectionHandler processes leader election events.
-	LeaderElectionHandler UserEventHandler
+	LeaderElectionHandler LeaderElectionHandler
 
 	// UserEvent processes known, non-leader election events.
 	UserEvent UserEventHandler
 
 	// UnknownEventHandler processes unkown events.
-	UnknownEventHandler UserEventHandler
+	UnknownEventHandler UnknownEventHandler
 
 	// Called when a Member joins the cluster.
-	NodeJoined MemberEventHandler
+	NodeJoined MemberJoinHandler
 
 	// Called when a Member leaves the cluster by sending a leave message.
-	NodeLeft MemberEventHandler
+	NodeLeft MemberLeaveHandler
 
 	// Called when a Member has been detected as failed.
-	NodeFailed MemberEventHandler
+	NodeFailed MemberFailureHandler
 
 	// Called when a Member has been Readed from the cluster.
-	NodeReaped MemberEventHandler
+	NodeReaped MemberReapHandler
 
 	// Called when a Member has been updated.
-	NodeUpdated MemberEventHandler
+	NodeUpdated MemberUpdateHandler
 
 	// Called when a membership event occurs.
 	Reconciler Reconciler
@@ -118,7 +153,7 @@ func (s SerfEventHandler) HandleEvent(e serf.Event) {
 	case serf.EventMemberJoin:
 		reconcile = s.ReconcileOnJoin
 		if s.NodeJoined != nil {
-			s.NodeJoined.HandleMemberEvent(e.(serf.MemberEvent))
+			s.NodeJoined.HandleMemberJoin(e.(serf.MemberEvent))
 		}
 
 	// If the event is a Leave event, call NodeLeft and then reconcile event with
@@ -126,7 +161,7 @@ func (s SerfEventHandler) HandleEvent(e serf.Event) {
 	case serf.EventMemberLeave:
 		reconcile = s.ReconcileOnLeave
 		if s.NodeLeft != nil {
-			s.NodeLeft.HandleMemberEvent(e.(serf.MemberEvent))
+			s.NodeLeft.HandleMemberLeave(e.(serf.MemberEvent))
 		}
 
 	// If the event is a Failed event, call NodeFailed and then reconcile event with
@@ -134,14 +169,14 @@ func (s SerfEventHandler) HandleEvent(e serf.Event) {
 	case serf.EventMemberFailed:
 		reconcile = s.ReconcileOnFail
 		if s.NodeFailed != nil {
-			s.NodeFailed.HandleMemberEvent(e.(serf.MemberEvent))
+			s.NodeFailed.HandleMemberFailure(e.(serf.MemberEvent))
 		}
 
 	// If the event is a Reap event, reconcile event with persistent storage.
 	case serf.EventMemberReap:
 		reconcile = s.ReconcileOnReap
 		if s.NodeReaped != nil {
-			s.NodeReaped.HandleMemberEvent(e.(serf.MemberEvent))
+			s.NodeReaped.HandleMemberReap(e.(serf.MemberEvent))
 		}
 
 	// If the event is a user event, handle leader elections, user events and unknown events.
@@ -152,7 +187,7 @@ func (s SerfEventHandler) HandleEvent(e serf.Event) {
 	case serf.EventMemberUpdate:
 		reconcile = s.ReconcileOnUpdate
 		if s.NodeUpdated != nil {
-			s.NodeUpdated.HandleMemberEvent(e.(serf.MemberEvent))
+			s.NodeUpdated.HandleMemberUpdate(e.(serf.MemberEvent))
 		}
 
 	// If the event is a query, call Query Handler
@@ -207,7 +242,7 @@ func (s *SerfEventHandler) handleUserEvent(event serf.UserEvent) {
 
 		// Process leader election event
 		if s.LeaderElectionHandler != nil {
-			s.LeaderElectionHandler.HandleUserEvent(event)
+			s.LeaderElectionHandler.HandleLeaderElection(event)
 		}
 
 	// Handle service events
@@ -226,7 +261,7 @@ func (s *SerfEventHandler) handleUserEvent(event serf.UserEvent) {
 
 		// Process unknown event
 		if s.UnknownEventHandler != nil {
-			s.UnknownEventHandler.HandleUserEvent(event)
+			s.UnknownEventHandler.HandleUnknownEvent(event)
 		}
 	}
 }

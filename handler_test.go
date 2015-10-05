@@ -21,20 +21,33 @@ func TestEventHandlerSuite(t *testing.T) {
 type EventHandlerTestSuite struct {
 	suite.Suite
 	Prefix  string
+	Mocker  *MockEventHandler
 	Handler SerfEventHandler
 	Member  serf.Member
 }
 
 // Make sure that Handler and Member are set before each test
 func (suite *EventHandlerTestSuite) SetupTest() {
+	m := &MockEventHandler{}
+	suite.Mocker = m
 	suite.Prefix = "serfer"
 	suite.Handler = SerfEventHandler{
-		ServicePrefix:     suite.Prefix,
-		ReconcileOnJoin:   true,
-		ReconcileOnFail:   true,
-		ReconcileOnLeave:  true,
-		ReconcileOnUpdate: true,
-		ReconcileOnReap:   true,
+		ServicePrefix:         suite.Prefix,
+		ReconcileOnJoin:       true,
+		ReconcileOnFail:       true,
+		ReconcileOnLeave:      true,
+		ReconcileOnUpdate:     true,
+		ReconcileOnReap:       true,
+		LeaderElectionHandler: m,
+		UserEvent:             m,
+		UnknownEventHandler:   m,
+		NodeJoined:            m,
+		NodeLeft:              m,
+		NodeFailed:            m,
+		NodeReaped:            m,
+		NodeUpdated:           m,
+		Reconciler:            m,
+		QueryHandler:          m,
 		IsLeader: func() bool {
 			return true
 		},
@@ -68,20 +81,12 @@ func (suite *EventHandlerTestSuite) TestNodeJoined() {
 		[]serf.Member{suite.Member},
 	}
 
-	// Add NodeJoined handler
-	m := &MockMemberEventHandler{}
-	m.On("HandleMemberEvent", evt).Return()
-	suite.Handler.NodeJoined = m
-
-	// Add Reconciler
-	r := &MockReconciler{}
-	r.On("Reconcile", suite.Member).Return()
-	suite.Handler.Reconciler = r
-
 	// Process event
+	suite.Mocker.On("HandleMemberJoin", evt).Return()
+	suite.Mocker.On("Reconcile", suite.Member).Return()
 	suite.Handler.HandleEvent(evt)
-	m.AssertCalled(suite.T(), "HandleMemberEvent", evt)
-	r.AssertCalled(suite.T(), "Reconcile", suite.Member)
+	suite.Mocker.AssertCalled(suite.T(), "HandleMemberJoin", evt)
+	suite.Mocker.AssertCalled(suite.T(), "Reconcile", suite.Member)
 }
 
 // Test NodeLeave messages are dispatched properly
@@ -93,20 +98,12 @@ func (suite *EventHandlerTestSuite) TestNodeLeave() {
 		[]serf.Member{suite.Member},
 	}
 
-	// Add NodeLeft handler
-	m := &MockMemberEventHandler{}
-	m.On("HandleMemberEvent", evt).Return()
-	suite.Handler.NodeLeft = m
-
-	// Add Reconciler
-	r := &MockReconciler{}
-	r.On("Reconcile", suite.Member).Return()
-	suite.Handler.Reconciler = r
-
 	// Process event
+	suite.Mocker.On("HandleMemberLeave", evt).Return()
+	suite.Mocker.On("Reconcile", suite.Member).Return()
 	suite.Handler.HandleEvent(evt)
-	m.AssertCalled(suite.T(), "HandleMemberEvent", evt)
-	r.AssertCalled(suite.T(), "Reconcile", suite.Member)
+	suite.Mocker.AssertCalled(suite.T(), "HandleMemberLeave", evt)
+	suite.Mocker.AssertCalled(suite.T(), "Reconcile", suite.Member)
 }
 
 // Test NodeFailed messages are dispatched properly
@@ -118,20 +115,12 @@ func (suite *EventHandlerTestSuite) TestNodeFailed() {
 		[]serf.Member{suite.Member},
 	}
 
-	// Add NodeFailed handler
-	m := &MockMemberEventHandler{}
-	m.On("HandleMemberEvent", evt).Return()
-	suite.Handler.NodeFailed = m
-
-	// Add Reconciler
-	r := &MockReconciler{}
-	r.On("Reconcile", suite.Member).Return()
-	suite.Handler.Reconciler = r
-
 	// Process event
+	suite.Mocker.On("HandleMemberFailure", evt).Return()
+	suite.Mocker.On("Reconcile", suite.Member).Return()
 	suite.Handler.HandleEvent(evt)
-	m.AssertCalled(suite.T(), "HandleMemberEvent", evt)
-	r.AssertCalled(suite.T(), "Reconcile", suite.Member)
+	suite.Mocker.AssertCalled(suite.T(), "HandleMemberFailure", evt)
+	suite.Mocker.AssertCalled(suite.T(), "Reconcile", suite.Member)
 }
 
 // Test NodeReaped messages are dispatched properly
@@ -145,20 +134,12 @@ func (suite *EventHandlerTestSuite) TestNodeReaped() {
 	newMember := suite.Member
 	newMember.Status = StatusReap
 
-	// Add NodeReaped handler
-	m := &MockMemberEventHandler{}
-	m.On("HandleMemberEvent", evt).Return()
-	suite.Handler.NodeReaped = m
-
-	// Add Reconciler
-	r := &MockReconciler{}
-	r.On("Reconcile", newMember).Return()
-	suite.Handler.Reconciler = r
-
 	// Process event
+	suite.Mocker.On("HandleMemberReap", evt).Return()
+	suite.Mocker.On("Reconcile", newMember).Return()
 	suite.Handler.HandleEvent(evt)
-	m.AssertCalled(suite.T(), "HandleMemberEvent", evt)
-	r.AssertCalled(suite.T(), "Reconcile", newMember)
+	suite.Mocker.AssertCalled(suite.T(), "HandleMemberReap", evt)
+	suite.Mocker.AssertCalled(suite.T(), "Reconcile", newMember)
 }
 
 // Test NodeUpdated messages are dispatched properly
@@ -170,20 +151,12 @@ func (suite *EventHandlerTestSuite) TestNodeUpdated() {
 		[]serf.Member{suite.Member},
 	}
 
-	// Add NodeReaped handler
-	m := &MockMemberEventHandler{}
-	m.On("HandleMemberEvent", evt).Return()
-	suite.Handler.NodeUpdated = m
-
-	// Add Reconciler
-	r := &MockReconciler{}
-	r.On("Reconcile", suite.Member).Return()
-	suite.Handler.Reconciler = r
-
 	// Process event
+	suite.Mocker.On("HandleMemberUpdate", evt).Return()
+	suite.Mocker.On("Reconcile", suite.Member).Return()
 	suite.Handler.HandleEvent(evt)
-	m.AssertCalled(suite.T(), "HandleMemberEvent", evt)
-	r.AssertCalled(suite.T(), "Reconcile", suite.Member)
+	suite.Mocker.AssertCalled(suite.T(), "HandleMemberUpdate", evt)
+	suite.Mocker.AssertCalled(suite.T(), "Reconcile", suite.Member)
 }
 
 // Test QueryEvent messages are dispatched properly
@@ -196,103 +169,32 @@ func (suite *EventHandlerTestSuite) TestQueryEvent() {
 		Payload: make([]byte, 0),
 	}
 
-	// Add UserEvent handler
-	m := &MockQueryEventHandler{}
-	m.On("HandleQueryEvent", query).Return()
-	suite.Handler.QueryHandler = m
-
-	// Add Reconciler
-	r := &MockReconciler{}
-	r.On("Reconcile", query).Return()
-	suite.Handler.Reconciler = r
-
 	// Process event
+	suite.Mocker.On("HandleQueryEvent", query).Return()
+	suite.Mocker.On("Reconcile", query).Return()
 	suite.Handler.HandleEvent(&query)
-	m.AssertCalled(suite.T(), "HandleQueryEvent", query)
-	r.AssertNotCalled(suite.T(), "Reconcile", query)
+	suite.Mocker.AssertCalled(suite.T(), "HandleQueryEvent", query)
+	suite.Mocker.AssertNotCalled(suite.T(), "Reconcile", query)
 }
 
 // Test nil messages are not dispatched properly
 func (suite *EventHandlerTestSuite) TestNilEvent() {
 
-	// Add NodeJoined handler
-	m1 := &MockMemberEventHandler{}
-	suite.Handler.NodeJoined = m1
-
-	// Add NodeLeft handler
-	m2 := &MockMemberEventHandler{}
-	suite.Handler.NodeLeft = m2
-
-	// Add NodeFailed handler
-	m3 := &MockMemberEventHandler{}
-	suite.Handler.NodeFailed = m3
-
-	// Add NodeReaped handler
-	m4 := &MockMemberEventHandler{}
-	suite.Handler.NodeReaped = m4
-
-	// Add NodeUpdated handler
-	m5 := &MockMemberEventHandler{}
-	suite.Handler.NodeUpdated = m5
-
-	// Add UserEvent handler
-	u1 := &MockUserEventHandler{}
-	suite.Handler.UserEvent = u1
-
-	// Add UserEvent handler
-	q1 := &MockQueryEventHandler{}
-	suite.Handler.QueryHandler = q1
-
-	// Add Reconciler
-	r1 := &MockReconciler{}
-	suite.Handler.Reconciler = r1
-
 	// Process event
 	suite.Handler.HandleEvent(nil)
-	m1.AssertNotCalled(suite.T(), "HandleMemberEvent")
-	m2.AssertNotCalled(suite.T(), "HandleMemberEvent")
-	m3.AssertNotCalled(suite.T(), "HandleMemberEvent")
-	m4.AssertNotCalled(suite.T(), "HandleMemberEvent")
-	m5.AssertNotCalled(suite.T(), "HandleMemberEvent")
-	u1.AssertNotCalled(suite.T(), "HandleUserEvent")
-	q1.AssertNotCalled(suite.T(), "HandleQueryEvent")
-	r1.AssertNotCalled(suite.T(), "Reconcile")
+	suite.Mocker.AssertNotCalled(suite.T(), "HandleMemberJoin")
+	suite.Mocker.AssertNotCalled(suite.T(), "HandleMemberLeave")
+	suite.Mocker.AssertNotCalled(suite.T(), "HandleMemberFailure")
+	suite.Mocker.AssertNotCalled(suite.T(), "HandleMemberUpdate")
+	suite.Mocker.AssertNotCalled(suite.T(), "HandleMemberReap")
+	suite.Mocker.AssertNotCalled(suite.T(), "HandleUknownEvent")
+	suite.Mocker.AssertNotCalled(suite.T(), "HandleUserEvent")
+	suite.Mocker.AssertNotCalled(suite.T(), "HandleQueryEvent")
+	suite.Mocker.AssertNotCalled(suite.T(), "Reconcile")
 }
 
 // Test unknown messages are not dispatched properly
 func (suite *EventHandlerTestSuite) TestUnknownEvent() {
-
-	// Add NodeJoined handler
-	m1 := &MockMemberEventHandler{}
-	suite.Handler.NodeJoined = m1
-
-	// Add NodeLeft handler
-	m2 := &MockMemberEventHandler{}
-	suite.Handler.NodeLeft = m2
-
-	// Add NodeFailed handler
-	m3 := &MockMemberEventHandler{}
-	suite.Handler.NodeFailed = m3
-
-	// Add NodeReaped handler
-	m4 := &MockMemberEventHandler{}
-	suite.Handler.NodeReaped = m4
-
-	// Add NodeUpdated handler
-	m5 := &MockMemberEventHandler{}
-	suite.Handler.NodeUpdated = m5
-
-	// Add UserEvent handler
-	u1 := &MockUserEventHandler{}
-	suite.Handler.UserEvent = u1
-
-	// Add UserEvent handler
-	q1 := &MockQueryEventHandler{}
-	suite.Handler.QueryHandler = q1
-
-	// Add Reconciler
-	r1 := &MockReconciler{}
-	suite.Handler.Reconciler = r1
 
 	// Process event
 	t1 := &MockEvent{Name: "UnknownType", Type: serf.EventType(-1)}
@@ -301,14 +203,15 @@ func (suite *EventHandlerTestSuite) TestUnknownEvent() {
 
 	// Test Assertions
 	t1.AssertCalled(suite.T(), "EventType")
-	m1.AssertNotCalled(suite.T(), "HandleMemberEvent")
-	m2.AssertNotCalled(suite.T(), "HandleMemberEvent")
-	m3.AssertNotCalled(suite.T(), "HandleMemberEvent")
-	m4.AssertNotCalled(suite.T(), "HandleMemberEvent")
-	m5.AssertNotCalled(suite.T(), "HandleMemberEvent")
-	u1.AssertNotCalled(suite.T(), "HandleUserEvent")
-	q1.AssertNotCalled(suite.T(), "HandleQueryEvent")
-	r1.AssertNotCalled(suite.T(), "Reconcile")
+	suite.Mocker.AssertNotCalled(suite.T(), "HandleMemberJoin")
+	suite.Mocker.AssertNotCalled(suite.T(), "HandleMemberLeave")
+	suite.Mocker.AssertNotCalled(suite.T(), "HandleMemberFailure")
+	suite.Mocker.AssertNotCalled(suite.T(), "HandleMemberUpdate")
+	suite.Mocker.AssertNotCalled(suite.T(), "HandleMemberReap")
+	suite.Mocker.AssertNotCalled(suite.T(), "HandleUknownEvent")
+	suite.Mocker.AssertNotCalled(suite.T(), "HandleUserEvent")
+	suite.Mocker.AssertNotCalled(suite.T(), "HandleQueryEvent")
+	suite.Mocker.AssertNotCalled(suite.T(), "Reconcile")
 }
 
 // Test leader election events are dispatched properly
@@ -322,14 +225,10 @@ func (suite *EventHandlerTestSuite) TestUserEvent_LeaderElection() {
 		Coalesce: false,
 	}
 
-	// Add UserEvent handler
-	m := &MockUserEventHandler{}
-	m.On("HandleUserEvent", evt).Return()
-	suite.Handler.LeaderElectionHandler = m
-
 	// Process event
+	suite.Mocker.On("HandleLeaderElection", evt).Return()
 	suite.Handler.HandleEvent(evt)
-	m.AssertCalled(suite.T(), "HandleUserEvent", evt)
+	suite.Mocker.AssertCalled(suite.T(), "HandleLeaderElection", evt)
 }
 
 // Test unknown user events are dispatched properly
@@ -343,14 +242,10 @@ func (suite *EventHandlerTestSuite) TestUserEvent_UnknownEvent() {
 		Coalesce: false,
 	}
 
-	// Add UserEvent handler
-	m := &MockUserEventHandler{}
-	m.On("HandleUserEvent", evt).Return()
-	suite.Handler.UnknownEventHandler = m
-
 	// Process event
+	suite.Mocker.On("HandleUnknownEvent", evt).Return()
 	suite.Handler.HandleEvent(evt)
-	m.AssertCalled(suite.T(), "HandleUserEvent", evt)
+	suite.Mocker.AssertCalled(suite.T(), "HandleUnknownEvent", evt)
 }
 
 // Test user events are dispatched properly
@@ -366,18 +261,14 @@ func (suite *EventHandlerTestSuite) TestUserEvent() {
 	modified := evt
 	modified.Name = "user-event"
 
-	// Add UserEvent handler
-	m := &MockUserEventHandler{}
-	m.On("HandleUserEvent", modified).Return()
-	suite.Handler.UserEvent = m
-
 	// Process event
+	suite.Mocker.On("HandleUserEvent", modified).Return()
 	suite.Handler.HandleEvent(evt)
-	m.AssertCalled(suite.T(), "HandleUserEvent", modified)
+	suite.Mocker.AssertCalled(suite.T(), "HandleUserEvent", modified)
 }
 
 // Test non leader event
-func (suite *EventHandlerTestSuite) TestNonLeaderEvetn() {
+func (suite *EventHandlerTestSuite) TestNonLeaderEvent() {
 	var called bool
 	suite.Handler.IsLeader = func() bool {
 		called = true
@@ -390,12 +281,9 @@ func (suite *EventHandlerTestSuite) TestNonLeaderEvetn() {
 		[]serf.Member{suite.Member},
 	}
 
-	// Add Reconciler
-	r := &MockReconciler{}
-	suite.Handler.Reconciler = r
-
 	// Process event
+	suite.Mocker.On("HandleMemberUpdate", evt).Return()
 	suite.Handler.HandleEvent(evt)
 	suite.True(called, "IsLeader should have been called")
-	r.AssertNotCalled(suite.T(), "Reconcile")
+	suite.Mocker.AssertNotCalled(suite.T(), "Reconcile")
 }

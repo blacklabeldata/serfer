@@ -17,46 +17,45 @@ func (m *MockEventHandler) HandleEvent(e serf.Event) {
 	return
 }
 
-// MockMemberEventHandler mocks MemberEvent handlers.
-type MockMemberEventHandler struct {
-	mock.Mock
-}
-
-// HandleMemberEvent processes member events.
-func (m *MockMemberEventHandler) HandleMemberEvent(e serf.MemberEvent) {
+// HandleUnknownEvent processes member events.
+func (m *MockEventHandler) HandleUnknownEvent(e serf.UserEvent) {
 	m.Called(e)
 	return
 }
 
-// MockUserEventHandler mocks UserEvent handlers.
-type MockUserEventHandler struct {
-	mock.Mock
-}
-
-// HandleUserEvent processes UserEvents.
-func (m *MockUserEventHandler) HandleUserEvent(e serf.UserEvent) {
+func (m *MockEventHandler) HandleMemberJoin(e serf.MemberEvent) {
 	m.Called(e)
 	return
 }
-
-// MockReconciler mocks a Reconciler.
-type MockReconciler struct {
-	mock.Mock
-}
-
-// Reconcile processes Members.
-func (m *MockReconciler) Reconcile(e serf.Member) {
+func (m *MockEventHandler) HandleMemberUpdate(e serf.MemberEvent) {
 	m.Called(e)
 	return
 }
-
-// MockQueryEventHandler mocks QueryEvent handlers.
-type MockQueryEventHandler struct {
-	mock.Mock
+func (m *MockEventHandler) HandleMemberLeave(e serf.MemberEvent) {
+	m.Called(e)
+	return
 }
-
-// HandleQueryEvent processes QueryEvents.
-func (m *MockQueryEventHandler) HandleQueryEvent(e serf.Query) {
+func (m *MockEventHandler) HandleMemberFailure(e serf.MemberEvent) {
+	m.Called(e)
+	return
+}
+func (m *MockEventHandler) HandleMemberReap(e serf.MemberEvent) {
+	m.Called(e)
+	return
+}
+func (m *MockEventHandler) HandleUserEvent(e serf.UserEvent) {
+	m.Called(e)
+	return
+}
+func (m *MockEventHandler) HandleQueryEvent(e serf.Query) {
+	m.Called(e)
+	return
+}
+func (m *MockEventHandler) HandleLeaderElection(e serf.UserEvent) {
+	m.Called(e)
+	return
+}
+func (m *MockEventHandler) Reconcile(e serf.Member) {
 	m.Called(e)
 	return
 }
