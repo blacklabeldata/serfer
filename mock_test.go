@@ -39,6 +39,12 @@ func (m *MockUserEventHandler) HandleUserEvent(e serf.UserEvent) {
 	return
 }
 
+// HandleLeaderElection processes leader election events.
+func (m *MockUserEventHandler) HandleLeaderElection(e serf.UserEvent) {
+	m.Called(e)
+	return
+}
+
 // MockReconciler mocks a Reconciler.
 type MockReconciler struct {
 	mock.Mock

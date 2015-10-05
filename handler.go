@@ -34,6 +34,11 @@ type QueryEventHandler interface {
 	HandleQueryEvent(serf.Query)
 }
 
+// LeaderElectionHandler handles leader election events.
+type LeaderElectionHandler interface {
+	HandleLeaderElection(serf.UserEvent)
+}
+
 // Reconciler is used to reconcile Serf events wilth an external process, like Raft.
 type Reconciler interface {
 	Reconcile(serf.Member)
@@ -70,7 +75,7 @@ type SerfEventHandler struct {
 	IsLeaderEvent func(string) bool
 
 	// LeaderElectionHandler processes leader election events.
-	LeaderElectionHandler UserEventHandler
+	LeaderElectionHandler LeaderElectionHandler
 
 	// UserEvent processes known, non-leader election events.
 	UserEvent UserEventHandler
@@ -207,7 +212,7 @@ func (s *SerfEventHandler) handleUserEvent(event serf.UserEvent) {
 
 		// Process leader election event
 		if s.LeaderElectionHandler != nil {
-			s.LeaderElectionHandler.HandleUserEvent(event)
+			s.LeaderElectionHandler.HandleLeaderElection(event)
 		}
 
 	// Handle service events

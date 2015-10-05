@@ -324,12 +324,12 @@ func (suite *EventHandlerTestSuite) TestUserEvent_LeaderElection() {
 
 	// Add UserEvent handler
 	m := &MockUserEventHandler{}
-	m.On("HandleUserEvent", evt).Return()
+	m.On("HandleLeaderElection", evt).Return()
 	suite.Handler.LeaderElectionHandler = m
 
 	// Process event
 	suite.Handler.HandleEvent(evt)
-	m.AssertCalled(suite.T(), "HandleUserEvent", evt)
+	m.AssertCalled(suite.T(), "HandleLeaderElection", evt)
 }
 
 // Test unknown user events are dispatched properly
